@@ -48,6 +48,14 @@ def add_slime(centre, drawing):
 	start_text = svgwrite.text.Text('SLIME', insert=centre)
 	drawing.add(start_text)
 
+def get_reserved_start_squares(rows, columns):
+	half_point = rows / 2
+	yield (0, half_point)
+	yield (0, half_point - 1)
+	yield (0, half_point + 1)
+	yield (1, half_point)
+	yield (1, half_point + 1)
+
 rows = 6
 columns = 18
 size = 100
@@ -64,8 +72,16 @@ starting_indices=(0,rows/2)
 x_pos=random.randint(columns/2, columns-1)
 y_pos=random.randint(0, rows-1)
 victory_pos=(x_pos, y_pos)
+while victory_pos in get_reserved_start_squares(rows, columns):
+	x_pos=random.randint(columns/2, columns-1)
+	y_pos=random.randint(0, rows-1)
+	victory_pos=(x_pos, y_pos)
 
-slime_pos=(random.randint(0, columns-1), random.randint(0, rows-1))
+slime_pos = victory_pos
+while((slime_pos[0] == victory_pos[0] and slime_pos[1] == victory_pos[1]) or 
+	slime_pos in get_reserved_start_squares(rows, columns)):
+	slime_pos=(random.randint(0, columns-1), random.randint(0, rows-1))
+
 
 for i in range(0, columns):
 	offset = 0
