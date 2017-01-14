@@ -17,6 +17,11 @@ def get_score_colour(score):
 	colour=svgwrite.rgb(100, gradient, gradient, '%')	
 	return colour
 
+def draw_image(centre, img, drawing):
+	offset_centre = (centre[0] - 172, centre[1] - 149)
+	image = svgwrite.image.Image(href=img, insert=offset_centre)
+	drawing.add(image)
+
 def draw_hex(size, centre, colour, drawing):
 	adjactent = size * math.cos(math.radians(60))
 	opposite = size * math.sin(math.radians(60))
@@ -29,11 +34,11 @@ def draw_hex(size, centre, colour, drawing):
 	bottom_right = (centre[0] + half, centre[1] + opposite)
 	
 	points=[top_left, top_right, right, bottom_right, bottom_left, left]
-	hex = svgwrite.shapes.Polygon(points, stroke=svgwrite.rgb(10, 10, 16, '%'), fill=colour)
+	hex = svgwrite.shapes.Polygon(points, stroke=svgwrite.rgb(255, 255, 255, '%'), stroke_width=10, stroke_opacity=100, fill_opacity=0)
 	drawing.add(hex)
 
 def add_score(score, centre, drawing):	
-	score_text = svgwrite.text.Text(str(score), insert=centre)
+	score_text = svgwrite.text.Text(str(score), insert=centre, font_size=100, fill='white')
 	drawing.add(score_text)
 
 def add_victory(centre, drawing):
@@ -58,10 +63,10 @@ def get_reserved_start_squares(rows, columns):
 
 rows = 6
 columns = 18
-size = 100
+size = 150 / math.sin(math.radians(60))
 
 board_size = (columns * get_vertical_offset(size), rows * get_horizontal_offset(size))
-margin = (400, 2000)
+margin = (-200, 600)
 
 dwg = svgwrite.Drawing('test_hex.svg', size=(board_size[0] + margin[0], board_size[1] + margin[1]))
 
@@ -99,13 +104,17 @@ for i in range(0, columns):
 			else:
 				add_score(0, position, dwg)
 		elif i == victory_pos[0] and j == victory_pos[1]:
+			draw_image(position, '../img/exit.png', dwg)
 			draw_hex(size, position, 'green', dwg)
 			add_victory(position, dwg)
 		elif i == slime_pos[0] and j == slime_pos[1]:
+			draw_image(position, '../img/slime_tile.png', dwg)
 			draw_hex(size, position, 'green', dwg)
 			add_slime(position, dwg)
 		else:
 			score = random.randint(1, max_score)
+			
+			draw_image(position, '../img/stone_tile_v2.png', dwg)
 			draw_hex(size, position, get_score_colour(score), dwg)
 			add_score(score, position, dwg)
 
