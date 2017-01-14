@@ -55,3 +55,10 @@ Teams can be up to 6 players.
 1. The group of players must roll *over* the **Threshold**.
 1. Any player who takes part in the group roll will escape.
 1. Any players who do not take part in the group roll must continue play.
+
+
+## Figures!
+
+We recommend the [Low Poly Fantasy Tabletop](https://www.thingiverse.com/thing:1395701) set
+
+![3D Printed Figures on a games board](https://pbs.twimg.com/media/C2KQuIAWIAAXBZU.jpg)
