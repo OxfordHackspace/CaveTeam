@@ -1,5 +1,11 @@
 # CaveTeam
-This is a game created for #janjam17!
+This is a game created for #JanJam17!
+
+![Boardgame in progress](https://github.com/OxfordHackspace/CaveTeam/raw/master/img/Board%20Game%20In%20Progress.jpg)
+
+## Credits
+
+Built with 💘 and 🍕 in Oxford by @edent @jlokier @qualiaa @THK123 @nickdbrett.
 
 ## The Rules!
 
