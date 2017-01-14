@@ -22,7 +22,7 @@ Teams can be up to 6 players.
 ### Movement
 
 1. All players start on the starting tile.
-1. *Optional:* A player may move to an adjacent **clear path** tile.
+1. *Optional:* A player may move to any **clear path** tile along an unbroken path.
 1. The player attempts to move to an adjacent tile - which can be a **clear path** or a **numbered tile**.
    1. The player rolls the dice. Regardless of whether the tile they want to move to is clear or not.
    1. If the score on the dice is **greater** than the score on the tile - the way is *clear!* Place a **clear path** token on the tile, and move the player onto the tile.
