@@ -61,61 +61,84 @@ def get_reserved_start_squares(rows, columns):
 	yield (1, half_point)
 	yield (1, half_point + 1)
 
+def get_locations_distance(pos1, pos2):
+	# if we are an even number of columns away
+	# then 
+	if((pos1[1] - pos2[1]) % 2 == 0):
+		return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+	else:
+		horizontal_offset = abs(pos1[1] - pos2[1])
+		# The vertical on odd rows we can either move across (and up) or across (and down)
+		# for one move in either case. 
+		vertical_offset = min(abs(pos1[0] - pos2[0]), abs(pos1[0] - (pos2[0] + 1)))
+		return horizontal_offset + vertical_offset
+
+
+def choose_starting_position():
+	return (rows/2, 0)	
+
+def choose_victory_position(starting_position):
+	# don't allow the victory point in the fist half of the board
+	# or (if the board is _really_ small in either of the first two columns)
+	min_column = max(columns/2, starting_position[0] + 2)
+	column=random.randint(min_column, columns-1)
+	row=random.randint(0, rows-1)
+	return (row, column)
+
+def choose_slime_start(starting_position, victory_position):
+	slime_pos = victory_position
+	# Don't allow slime within three of the starting position or ending position
+	while(get_locations_distance(slime_pos, victory_position) <= 3 or
+		  get_locations_distance(slime_pos, starting_position) <= 3):
+		slime_pos=(random.randint(0, columns-1), random.randint(0, rows-1))
+	return slime_pos
+
+def get_hex_centre(row, column, size):
+	offset = 0
+	if column % 2 == 0:
+		offset = get_vertical_offset(size) / 2.0
+	return ((column + 1) * get_horizontal_offset(size), offset + ((row + 1) * get_vertical_offset(size)))
+
+def create_board(rows, columns, size):
+	board_size = (columns * get_horizontal_offset(size), rows * get_vertical_offset(size))
+	margin = (200, 600)
+	dwg = svgwrite.Drawing('board.svg', size=(board_size[0] + margin[0], board_size[1] + margin[1]))
+	position = (0, 0)
+
+	starting_pos = choose_starting_position()
+	victory_pos = choose_victory_position(starting_pos)
+	slime_pos = choose_slime_start(starting_pos, victory_pos)
+
+	for column in range(0, columns):
+		for row in range(0, rows):
+			position = get_hex_centre(row, column, size)
+			if(get_locations_distance((row, column), starting_pos) == 0):
+				draw_hex(size, position, 'green', dwg)
+				add_start(position, dwg)
+			elif(get_locations_distance((row, column), starting_pos) == 1):
+				draw_hex(size, position, 'white', dwg)
+				add_score(0, position, dwg)
+			elif(get_locations_distance((row, column), victory_pos) == 0):
+				draw_image(position, '../img/exit.png', dwg)
+				add_victory(position, dwg)
+			elif(get_locations_distance((row, column), slime_pos) == 0):
+				draw_image(position, '../img/slime_tile.png', dwg)
+				draw_hex(size, position, 'green', dwg)
+				add_slime(position, dwg)
+			else:
+				score = random.randint(1, max_score)
+				draw_image(position, '../img/stone_tile_v2.png', dwg)
+				draw_hex(size, position, get_score_colour(score), dwg)
+				add_score(score, position, dwg)
+
+			'''
+			draw_image(position, '../img/rock_tile.png', dwg)
+			draw_hex(size, position,' white', dwg)
+			'''
+
+	dwg.save()	
+
 rows = 6
 columns = 18
 size = 150 / math.sin(math.radians(60))
-
-board_size = (columns * get_vertical_offset(size), rows * get_horizontal_offset(size))
-margin = (-200, 600)
-
-dwg = svgwrite.Drawing('test_hex.svg', size=(board_size[0] + margin[0], board_size[1] + margin[1]))
-
-position = (0, 0)
-
-starting_indices=(0,rows/2)
-
-x_pos=random.randint(columns/2, columns-1)
-y_pos=random.randint(0, rows-1)
-victory_pos=(x_pos, y_pos)
-while victory_pos in get_reserved_start_squares(rows, columns):
-	x_pos=random.randint(columns/2, columns-1)
-	y_pos=random.randint(0, rows-1)
-	victory_pos=(x_pos, y_pos)
-
-slime_pos = victory_pos
-while((slime_pos[0] == victory_pos[0] and slime_pos[1] == victory_pos[1]) or 
-	slime_pos in get_reserved_start_squares(rows, columns)):
-	slime_pos=(random.randint(0, columns-1), random.randint(0, rows-1))
-
-
-for i in range(0, columns):
-	offset = 0
-	if i % 2 == 0:
-		offset = get_vertical_offset(size) / 2.0
-	position = (position[0] + get_horizontal_offset(size), offset)
-	for j in range(0, rows):
-		position = (position[0], position[1] + get_vertical_offset(size))
-		offset_x = i - starting_indices[0]
-		offset_y = j - starting_indices[1]
-		if (abs(offset_x) + abs(offset_y) <= 1) or (offset_x == 1 and offset_y == 1):
-			draw_hex(size, position, 'white', dwg)
-			if(abs(offset_x) + abs(offset_y) == 0):
-				add_start(position, dwg)
-			else:
-				add_score(0, position, dwg)
-		elif i == victory_pos[0] and j == victory_pos[1]:
-			draw_image(position, '../img/exit.png', dwg)
-			draw_hex(size, position, 'green', dwg)
-			add_victory(position, dwg)
-		elif i == slime_pos[0] and j == slime_pos[1]:
-			draw_image(position, '../img/slime_tile.png', dwg)
-			draw_hex(size, position, 'green', dwg)
-			add_slime(position, dwg)
-		else:
-			score = random.randint(1, max_score)
-			
-			draw_image(position, '../img/stone_tile_v2.png', dwg)
-			draw_hex(size, position, get_score_colour(score), dwg)
-			add_score(score, position, dwg)
-
-dwg.save()	
+create_board(rows, columns, size)
