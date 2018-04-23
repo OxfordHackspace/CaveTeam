@@ -2,8 +2,6 @@ import svgwrite
 import math
 import random
 
-max_score = 6
-
 def get_vertical_offset(size):
 	opposite = size * math.sin(math.radians(60))
 	return 2 * opposite
@@ -11,16 +9,6 @@ def get_vertical_offset(size):
 def get_horizontal_offset(size):
 	adjactent = size * math.cos(math.radians(60))
 	return adjactent + size
-
-def get_score_colour(score):
-	gradient=100.0 * (1.0 - (float(score)/float(max_score)))
-	colour=svgwrite.rgb(100, gradient, gradient, '%')	
-	return colour
-
-def draw_image(centre, img, drawing):
-	offset_centre = (centre[0] - 172, centre[1] - 149)
-	image = svgwrite.image.Image(href=img, insert=offset_centre)
-	drawing.add(image)
 
 def draw_hex(size, centre, colour, drawing):
 	adjactent = size * math.cos(math.radians(60))
@@ -34,32 +22,25 @@ def draw_hex(size, centre, colour, drawing):
 	bottom_right = (centre[0] + half, centre[1] + opposite)
 	
 	points=[top_left, top_right, right, bottom_right, bottom_left, left]
-	hex = svgwrite.shapes.Polygon(points, stroke=svgwrite.rgb(255, 255, 255, '%'), stroke_width=10, stroke_opacity=100, fill_opacity=0)
+	hex = svgwrite.shapes.Polygon(points, stroke=svgwrite.rgb(0, 0, 0, '%'), stroke_width=10, stroke_opacity=100, fill=colour, fill_opacity=100)
 	drawing.add(hex)
 
 def add_score(score, centre, drawing):	
-	score_text = svgwrite.text.Text(str(score), insert=centre, font_size=100, fill='white')
+	score_text = svgwrite.text.Text(str(score), insert=centre, font_size=100, fill='black')
 	drawing.add(score_text)
 
 def add_victory(centre, drawing):
-	end_text = svgwrite.text.Text('EXIT', insert=centre)
+	# hex = svgwrite.shapes.Polygon(points, fill=svgwrite.rgb(0, 255, 0, '%'), fill_opacity=100)
+	end_text = svgwrite.text.Text('EXIT', font_size=50, insert=centre, fill='black')
 	drawing.add(end_text)
 
 def add_start(centre, drawing):
-	start_text = svgwrite.text.Text('START', insert=centre)
+	start_text = svgwrite.text.Text('START', font_size=50, insert=centre, fill='black')
 	drawing.add(start_text)
 
 def add_slime(centre, drawing):
-	start_text = svgwrite.text.Text('SLIME', insert=centre)
+	start_text = svgwrite.text.Text('SLIME', font_size=50, insert=centre, fill='black')
 	drawing.add(start_text)
-
-def get_reserved_start_squares(rows, columns):
-	half_point = rows / 2
-	yield (0, half_point)
-	yield (0, half_point - 1)
-	yield (0, half_point + 1)
-	yield (1, half_point)
-	yield (1, half_point + 1)
 
 def get_locations_distance(pos1, pos2):
 	# if we are an even number of columns away
@@ -73,7 +54,6 @@ def get_locations_distance(pos1, pos2):
 		vertical_offset = min(abs(pos1[0] - pos2[0]), abs(pos1[0] - (pos2[0] + 1)))
 		return horizontal_offset + vertical_offset
 
-
 def choose_starting_position():
 	return (rows/2, 0)	
 
@@ -83,14 +63,18 @@ def choose_victory_position(starting_position):
 	min_column = max(columns/2, starting_position[0] + 2)
 	column=random.randint(min_column, columns-1)
 	row=random.randint(0, rows-1)
-	return (row, column)
+	victory_pos = (column, row)
+	return victory_pos
 
 def choose_slime_start(starting_position, victory_position):
-	slime_pos = victory_position
-	# Don't allow slime within three of the starting position or ending position
-	while(get_locations_distance(slime_pos, victory_position) <= 3 or
-		  get_locations_distance(slime_pos, starting_position) <= 3):
-		slime_pos=(random.randint(0, columns-1), random.randint(0, rows-1))
+	# Don't allow slime within three of the starting position
+	min_column = starting_position[0] + 2
+	column = random.randint(min_column, columns-1)
+	row = random.randint(0, rows-1)
+	slime_pos = (column, row)
+	#	If the slime is in the same position as the exit, try again
+	if (slime_pos == victory_position):
+		slime_pos = choose_slime_start(starting_position, victory_position)
 	return slime_pos
 
 def get_hex_centre(row, column, size):
@@ -103,6 +87,8 @@ def create_board(rows, columns, size):
 	board_size = (columns * get_horizontal_offset(size), rows * get_vertical_offset(size))
 	margin = (200, 600)
 	dwg = svgwrite.Drawing('board.svg', size=(board_size[0] + margin[0], board_size[1] + margin[1]))
+	# Background Colour
+	dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), rx=None, ry=None, fill='white'))
 	position = (0, 0)
 
 	starting_pos = choose_starting_position()
@@ -112,33 +98,33 @@ def create_board(rows, columns, size):
 	for column in range(0, columns):
 		for row in range(0, rows):
 			position = get_hex_centre(row, column, size)
-			if(get_locations_distance((row, column), starting_pos) == 0):
-				draw_hex(size, position, 'green', dwg)
-				add_start(position, dwg)
-			elif(get_locations_distance((row, column), starting_pos) == 1):
-				draw_hex(size, position, 'white', dwg)
-				add_score(0, position, dwg)
-			elif(get_locations_distance((row, column), victory_pos) == 0):
-				draw_image(position, '../img/exit.png', dwg)
-				add_victory(position, dwg)
-			elif(get_locations_distance((row, column), slime_pos) == 0):
-				draw_image(position, '../img/slime_tile.png', dwg)
-				draw_hex(size, position, 'green', dwg)
-				add_slime(position, dwg)
-			else:
-				score = random.randint(1, max_score)
-				draw_image(position, '../img/stone_tile_v2.png', dwg)
-				draw_hex(size, position, get_score_colour(score), dwg)
-				add_score(score, position, dwg)
 
-			'''
-			draw_image(position, '../img/rock_tile.png', dwg)
-			draw_hex(size, position,' white', dwg)
-			'''
+			if (slime_pos == (column,row)):
+				draw_hex(size, position, '#00FF00', dwg)
+				add_slime(position, dwg)
+
+			elif (victory_pos == (column,row)):
+				draw_hex(size, position, '#0000FF', dwg)
+				add_victory(position, dwg)
+
+			elif(get_locations_distance((row, column), starting_pos) == 0):
+				draw_hex(size, position, '#FFFF00', dwg)
+				add_start(position, dwg)
+				
+			elif(get_locations_distance((row, column), starting_pos) == 1):
+				draw_hex(size, position, '#FFFFFF', dwg)
+				add_score(0, position, dwg)
+				
+			else:
+				score = random.randint(1, threshold)
+				draw_hex(size, position, "#FFFFFF", dwg)
+				add_score(score, position, dwg)
 
 	dwg.save()	
 
 rows = 6
 columns = 18
+players = 4
+threshold = players * 3
 size = 150 / math.sin(math.radians(60))
 create_board(rows, columns, size)
