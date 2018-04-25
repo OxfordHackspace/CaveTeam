@@ -53,10 +53,10 @@ CaveTeam is a *collaborative* game. The aim is to work together as a **CAVE TEAM
 
 1. Each player then rolls the dice.  
     1. If the *total* of all the rolls are *greater than* the score of the tile, the way is *clear!*
-      * Place a **clear token** on the tile.
-      * The lead player moves onto the tile, all their assistants stay in place.
+       * Place a **clear token** on the tile.
+       * The lead player moves onto the tile, all their assistants stay in place.
     1. If the *total* of all the rolls are *less than or equal to* to score of the tile, the way is *blocked!*
-      * Place a **blocked path** token on the tile.
+       * Place a **blocked path** token on the tile.
 
 ### Slime
 
